@@ -59,11 +59,31 @@ try{
 			$GuildData = $discord->guild->getGuild(['guild.id' => intval($Guild['guild_id'])]);
 			//echo '<pre>'.print_r($GuildData, true).'</pre>';
 			
+			$Bot = $discord->guild->getGuildMember(['guild.id' => intval($Guild['guild_id']), 'user.id' => intval(536705900606652417)]);
+			//echo '<pre>'.print_r($Bot, true).'</pre>';
+			
+			//Find the bot role.
+			$BotRole = 0;
+			$BotRoleName = 'Role Bot';
+			$BotRolePosition = 0;
+			$BotRoleColor = 0;
+			foreach($GuildData->roles as $Role){
+				if($Role->managed != '1') continue;
+				//echo 'Managed Role: '.$Role->name.'<br>';
+				if(in_array($Role->id, $Bot->roles)){
+					//echo '+ Bot Has it.<br>';
+					$BotRole = $Role->id;
+					$BotRoleName = $Role->name;
+					$BotRolePosition = $Role->position;
+					$BotRoleColor = str_pad(dechex($Role->color), 6, "0", STR_PAD_LEFT);
+				}				
+			}
+			
 			$Roles = array();
 			foreach($GuildData->roles as $Role){
 				if($Role->name == '@everyone') continue;
-				if($Role->managed || $Role->managed=='1') continue;
-				
+				if($Role->managed=='1') continue;
+				if($Role->position > $BotRolePosition) continue;
 				//echo '<pre>'.print_r($Role, true).'</pre>';
 				$Roles[$Role->id] = array('Position' => $Role->position, 'Name' => $Role->name, 'Color' => str_pad(dechex($Role->color), 6, "0", STR_PAD_LEFT));
 			}
@@ -78,7 +98,7 @@ try{
 			echo '<h1>Configure Discord Server: '.$GuildData->name.'</h1>';
 			
 			if(count($Roles)==0){
-				echo 'No roles setup on your Discord server. Go create some roles first!';	
+				echo 'No eligible roles setup on your Discord server!';	
 			}else{
 				echo '
 				<form method="post">
@@ -101,15 +121,18 @@ try{
 						$Selected = true;
 					}
 					
-					echo '<li><input type="checkbox" name="role[]" value="'.$RoleID.'"'.($Selected ? ' checked="checked"' : '').'> <span style="color: #'.$Role['Color'].'">'.$Role['Name'].'</span></li>';
+					echo '<li><input type="checkbox" name="role[]" value="'.$RoleID.'"'.($Selected ? ' checked="checked"' : '').'> <span class="tag" style="border-color: #'.$Role['Color'].';color: #'.$Role['Color'].'">'.$Role['Name'].'</span></li>';
 				}
 				echo '</ul>
 				<input type="hidden" name="guild" value="'.$Guild['guild_id'].'">
 				<button type="submit">Submit</button>
 				</form>';
 			}
+			echo '<br>Remember that the <span class="tag" style="border-color: #'.$BotRoleColor.'; color: #'.$BotRoleColor.'">'.$BotRoleName.'</span> role needs to be <strong>Above</strong> any roles you want to make self-serve.';
 			
 			
+		}else{
+			throw new Exception('Please execute the "configure" command on the discord server you wanted to configure.');
 		}
 		
 	}
@@ -120,3 +143,12 @@ try{
 
 
 ?>
+<style>
+.tag {
+	padding:2px;
+	margin:2px;
+	display:inline-block;
+	font-weight: bold;
+	border: 1px solid #000000;
+}
+</style>
