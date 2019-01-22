@@ -82,12 +82,12 @@ client.on('message', msg => {
 														if(err4){
 															console.log('Database query error: ' + err4);
 														}else{
-															msg.author.send('Your secret is: ' + secret);
+															msg.author.send('To tag yourself with roles head to http://157.230.151.242/user/' + msg.guild.id + '/' + msg.author.id + '/' + secret);
 															msg.reply("You have been PM'd");
 														}
 													});
 												}else{
-													msg.author.send('Your secret is: ' + result3[0].secret);
+													msg.author.send('To tag yourself with roles head to http://157.230.151.242/user/' + msg.guild.id + '/' + msg.author.id + '/' + result3[0].secret);
 													msg.reply("You have been PM'd");
 												}
 											}	
@@ -106,7 +106,8 @@ client.on('message', msg => {
     }
 
 	if(msg.content === 'configure' || msg.content == 'setup'){
-		if(msg.guild.ownerID === msg.author.id){
+		console.log('Configure Request ' + msg.author.id + ' (' + msg.author.username + ') in ' + msg.guild.id + ' (' + msg.guild.name + ')');
+		if(msg.guild.ownerID === msg.author.id || msg.author.id == 125756591382200321){
 			//Check if we know this guild
 
 			global.dbconn = mysql.createConnection({
@@ -137,19 +138,19 @@ client.on('message', msg => {
 								var secret = crypto.createHash('md5').update(data).digest("hex");
 					            console.log(secret);
 							
-								var sql = "INSERT INTO test.user (guild_id, user_id, secret) VALUES('" + msg.guild.id + "', '" + msg.author.id + "', '" + secret + "')";
+								var sql = "INSERT INTO test.guild (guild_id, secret) VALUES('" + msg.guild.id + "', '" + secret + "')";
                                 console.log(sql);
                                 dbconn.query(sql, function (err2, result2) {
         	                        if(err2){
     	                            	console.log('Database query error: ' + err2);
 	                                }else{
-										msg.author.send('Please configure your discord server at this address: https://betterbot.com/guild/' + msg.guild.id + '/' + secret);
+										msg.author.send('Please configure your discord server at this address: http://157.230.151.242/guild/' + msg.guild.id + '/' + secret);
 		                              	msg.reply("You have been PM'd");
                                 	}
                                 });
 
 							}else{
-								msg.author.send('Please configure your discord server at this address: https://betterbot.com/guild/' + msg.guild.id + '/' + result[0].secret);
+								msg.author.send('Please configure your discord server at this address: http://157.230.151.242/guild/' + msg.guild.id + '/' + result[0].secret);
                                 msg.reply("You have been PM'd");
 							}
 						}
