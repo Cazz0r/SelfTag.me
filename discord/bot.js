@@ -34,10 +34,10 @@ client.on('message', msg => {
 			database : 'test'
 		});
 
-
 		dbconn.connect(function(err) {
 			if(err){
 				console.log('Database connection error');
+				dbconn.end();
 			}else{
 
 				//Check if the guild has been configured. A record will exist in test.guild.
@@ -45,11 +45,18 @@ client.on('message', msg => {
 				dbconn.query(sql, function (err, result) {
 					if(err){
 						console.log('Database query error: ' + err);
+						dbconn.end();
 					}else{
 						if(result.length === 0){
-							var ownername = msg.guild.owner.nickname;
-							if(ownername === '' || ownername === 'null' || ownername === null) ownername = msg.guild.owner.user.username;
-							msg.reply("This server has not yet been configured by it's owner. Please have " + ownername + " issue the 'configure' command.");
+							
+							if(msg.author.id == msg.guild.ownerID){
+								msg.reply("This server has not yet been configured, please issue the '.configure' command first.");
+							}else{
+								var ownername = msg.guild.owner.nickname;
+								if(ownername === '' || ownername === 'null' || ownername === null) ownername = msg.guild.owner.user.username;
+								msg.reply("This server has not yet been configured by it's owner. Please have " + ownername + " issue the '.configure' command.");
+							}
+							dbconn.end();
 						}else{
 
 							//Check that the server has self-serve roles. Records will exist in test.role.
@@ -57,11 +64,17 @@ client.on('message', msg => {
 							dbconn.query(sql, function (err2, result2) {
 			                    if(err2){
                 			        console.log('Database query error: ' + err2);
+									dbconn.end();
 			                    }else{
             			            if(result2.length === 0){
-										var ownername = msg.guild.owner.nickname;
-										if(ownername === '' || ownername === 'null' || ownername === null) ownername = msg.guild.owner.user.username;
-                        			    msg.reply("This server has no self-serve roles configured. Please have " + ownername + " issue the 'configure' command.");
+										if(msg.author.id == msg.guild.ownerID){
+											msg.reply("This server has no self-serve roles configured. Please issue the '.configure' command first.");
+										}else{
+											var ownername = msg.guild.owner.nickname;
+											if(ownername === '' || ownername === 'null' || ownername === null) ownername = msg.guild.owner.user.username;
+											msg.reply("This server has no self-serve roles configured. Please have " + ownername + " issue the '.configure' command.");
+										}
+										dbconn.end();
 			                        }else{
 
 										//Check if this user has a secret.
@@ -70,6 +83,7 @@ client.on('message', msg => {
 			  							dbconn.query(sql, function (err3, result3) {
 			    							if (err3){
 												console.log('Database query error: ' + err3);
+												dbconn.end();
 											}else{
 												//console.log("Found: " + result3.length);
 												if(result3.length === 0){
@@ -86,13 +100,16 @@ client.on('message', msg => {
 														if(err4){
 															console.log('Database query error: ' + err4);
 														}else{
-															msg.author.send('To tag yourself with roles on **' + msg.guild.name + '** head to http://157.230.151.242/user/' + msg.guild.id + '/' + msg.author.id + '/' + secret);
+															msg.author.send('To tag yourself with roles on **' + msg.guild.name + '** head to <http://157.230.151.242/user/' + msg.guild.id + '/' + msg.author.id + '/' + secret + '>');
 															msg.reply("You have been PM'd");
 														}
+														
+														dbconn.end();
 													});
 												}else{
-													msg.author.send('To tag yourself with roles on **' + msg.guild.name + '** head to http://157.230.151.242/user/' + msg.guild.id + '/' + msg.author.id + '/' + result3[0].secret);
+													msg.author.send('To tag yourself with roles on **' + msg.guild.name + '** head to <http://157.230.151.242/user/' + msg.guild.id + '/' + msg.author.id + '/' + result3[0].secret + '>');
 													msg.reply("You have been PM'd");
+													dbconn.end();
 												}
 											}	
 							  			});
@@ -105,8 +122,6 @@ client.on('message', msg => {
 				});
 
 			}
-			
-			//dbconn.end();
 		});
 
     }
@@ -123,10 +138,10 @@ client.on('message', msg => {
         	    database : 'test'
 	        });
 
-
 	        dbconn.connect(function(err) {
     	        if(err){
         	        console.log('Database connection error');
+					dbconn.end();
     	        }else{
 	
         	        //Check if the guild has been configured. A record will exist in test.guild.
@@ -134,6 +149,7 @@ client.on('message', msg => {
                 	dbconn.query(sql, function (err, result) {
                     	if(err){
 	                        console.log('Database query error: ' + err);
+							dbconn.end();
     	                }else{
         	                if(result.length === 0){
 
@@ -150,20 +166,20 @@ client.on('message', msg => {
         	                        if(err2){
     	                            	console.log('Database query error: ' + err2);
 	                                }else{
-										msg.author.send('Configure **' + msg.guild.name + '** at this address: http://157.230.151.242/guild/' + msg.guild.id + '/' + secret);
+										msg.author.send('Configure **' + msg.guild.name + '** at this address: <http://157.230.151.242/guild/' + msg.guild.id + '/' + secret + '>');
 		                              	msg.reply("You have been PM'd");
                                 	}
+									dbconn.end();
                                 });
 
 							}else{
-								msg.author.send('Configure **' + msg.guild.name + '** at this address: http://157.230.151.242/guild/' + msg.guild.id + '/' + result[0].secret);
+								msg.author.send('Configure **' + msg.guild.name + '** at this address: <http://157.230.151.242/guild/' + msg.guild.id + '/' + result[0].secret + '>');
                                 msg.reply("You have been PM'd");
+								dbconn.end();
 							}
 						}
 					});
 				}
-				
-				//dbconn.end();
 			});
 			
 
@@ -203,6 +219,7 @@ client.on('message', msg => {
 					dbconn.connect(function(err) {
 						if(err){
 							console.log('Database connection error');
+							dbconn.end();
 						}else{
 
 							var sql = "DELETE FROM test.guild WHERE guild_id = '" + guildmessage[1] + "'";
@@ -231,10 +248,10 @@ client.on('message', msg => {
 								if(err2){
 									console.log('Database query error: ' + err2);
 								}
+								dbconn.end();
 							});
 						}
 						
-						//dbconn.end();
 					});
 					
 				}).catch(console.error);
@@ -259,13 +276,15 @@ client.on('guildCreate', newguild => {
 	dbconn.connect(function(err) {
 		if(err){
 			console.log('Database connection error');
+			dbconn.end();
 		}else{
 
 			//Check if the guild has been configured. A record will exist in test.guild.
-			var sql = "SELECT * FROM test.guild WHERE guild_id = '" + guild.id + "'";
+			var sql = "SELECT secret FROM test.guild WHERE guild_id = '" + guild.id + "'";
 			dbconn.query(sql, function (err, result) {
 				if(err){
 					console.log('Database query error: ' + err);
+					dbconn.end();
 				}else{
 					if(result.length === 0){
 
@@ -283,18 +302,18 @@ client.on('guildCreate', newguild => {
 								console.log('Database query error: ' + err2);
 							}else{
 								console.log('PM\'d Owner: ' + guild.owner.user.username);
-								guild.owner.send(`I was just added to your Discord server, **` + newguild.name + `**, as you're the owner, you'll need to configure the self-serve roles here: http://157.230.151.242/guild/` + guild.id + `/` + secret);
+								guild.owner.send(`I was just added to your Discord server, **` + newguild.name + `**, as you're the owner, you'll need to configure the self-serve roles here: <http://157.230.151.242/guild/` + guild.id + `/` + secret + '>');
 							}
+							dbconn.end();
 						});
 
 					}else{
-						guild.owner.send(`I was just added to your Discord server, **` + newguild.name + `**, as you're the owner, you'll need to configure the self-serve roles here: http://157.230.151.242/guild/` + guild.id + `/` + result[0].secret);
+						guild.owner.send(`I was just added to your Discord server, **` + newguild.name + `**, as you're the owner, you'll need to configure the self-serve roles here: <http://157.230.151.242/guild/` + guild.id + `/` + result[0].secret + '>');
+						dbconn.end();
 					}
 				}
 			});
 		}
-		
-		//dbconn.end();
 	});
 	
 	
