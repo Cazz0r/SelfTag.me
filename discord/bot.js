@@ -66,22 +66,22 @@ client.on('message', msg => {
 
 										//Check if this user has a secret.
 										var sql = "SELECT * FROM test.user WHERE guild_id = '" + msg.guild.id + "' AND user_id = '" + msg.author.id + "'";
-										console.log(sql);
+										//console.log(sql);
 			  							dbconn.query(sql, function (err3, result3) {
 			    							if (err3){
 												console.log('Database query error: ' + err3);
 											}else{
-												console.log("Found: " + result3.length);
+												//console.log("Found: " + result3.length);
 												if(result3.length === 0){
 													//No secret, generate it.
 													var data = msg.guild.id + " " + msg.author.id + " LANA";
-													console.log(data);
+													//console.log(data);
 						
 													var secret = crypto.createHash('md5').update(data).digest("hex");
-													console.log(secret);
+													//console.log(secret);
 
 													var sql = "INSERT INTO test.user (guild_id, user_id, secret) VALUES('" + msg.guild.id + "', '" + msg.author.id + "', '" + secret + "')";
-													console.log(sql);
+													//console.log(sql);
 													dbconn.query(sql, function (err4, result4) {
 														if(err4){
 															console.log('Database query error: ' + err4);
@@ -105,6 +105,8 @@ client.on('message', msg => {
 				});
 
 			}
+			
+			//dbconn.end();
 		});
 
     }
@@ -160,6 +162,8 @@ client.on('message', msg => {
 						}
 					});
 				}
+				
+				//dbconn.end();
 			});
 			
 
@@ -229,6 +233,8 @@ client.on('message', msg => {
 								}
 							});
 						}
+						
+						//dbconn.end();
 					});
 					
 				}).catch(console.error);
@@ -265,17 +271,18 @@ client.on('guildCreate', newguild => {
 
 						//Generate a secret for the guild.
 						var data = guild.id + " LANA";
-						console.log(data);
+						//console.log(data);
 
 						var secret = crypto.createHash('md5').update(data).digest("hex");
-						console.log(secret);
+						//console.log(secret);
 
 						var sql = "INSERT INTO test.guild (guild_id, secret) VALUES('" + guild.id + "', '" + secret + "')";
-						console.log(sql);
+						//console.log(sql);
 						dbconn.query(sql, function (err2, result2) {
 							if(err2){
 								console.log('Database query error: ' + err2);
 							}else{
+								console.log('PM\'d Owner: ' + guild.owner.user.username);
 								guild.owner.send(`I was just added to your Discord server, **` + newguild.name + `**, as you're the owner, you'll need to configure the self-serve roles here: http://157.230.151.242/guild/` + guild.id + `/` + secret);
 							}
 						});
@@ -286,6 +293,8 @@ client.on('guildCreate', newguild => {
 				}
 			});
 		}
+		
+		//dbconn.end();
 	});
 	
 	

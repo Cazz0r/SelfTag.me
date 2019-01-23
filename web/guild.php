@@ -6,6 +6,8 @@ use RestCord\DiscordClient;
 try{
 	//echo __FILE__.'<br>';
 	//echo '<pre>'.print_r($_GET, true).'</pre>';
+	
+	require_once "includes/header.php";
 
 	if(!isset($_GET['1'])) throw new Exception('Missing Guild ID');
 	if(!isset($_GET['2'])) throw new Exception('Missing Guild Secret');
@@ -51,7 +53,7 @@ try{
 					}
 				}
 				
-				echo 'Your changes have been saved successfully.<br>';
+				echo '<div class="alert alert-success mt-3" role="alert">Your changes have been saved successfully.</div>';
 			}
 			
 			//Get the guild details from Discord.
@@ -83,7 +85,7 @@ try{
 			foreach($GuildData->roles as $Role){
 				if($Role->name == '@everyone') continue;
 				if($Role->managed=='1') continue;
-				if($Role->position > $BotRolePosition) continue;
+				if($Role->position >= $BotRolePosition) continue;
 				//echo '<pre>'.print_r($Role, true).'</pre>';
 				$Roles[$Role->id] = array('Position' => $Role->position, 'Name' => $Role->name, 'Color' => str_pad(dechex($Role->color), 6, "0", STR_PAD_LEFT));
 			}
@@ -95,14 +97,19 @@ try{
 			uasort($Roles, 'RoleSortByPosition');
 			//echo '<pre>'.print_r($Roles, true).'</pre>';
 			
-			echo '<h1>Configure Discord Server: '.$GuildData->name.'</h1>';
+			echo '<div class="row"><div class="col"><h1>Configure Discord Server: '.$GuildData->name.'</h1></div></div>';
 			
 			if(count($Roles)==0){
-				echo 'No eligible roles setup on your Discord server!';	
+				echo '
+				<div class="alert alert-danger" role="alert">
+					<i class="fas fa-exclamation-triangle"></i> No eligible roles setup on your Discord server!
+					<div><i class="fas fa-info-circle"></i> Remember that the <span style="border-color: #'.$BotRoleColor.'; color: #'.$BotRoleColor.'">'.$BotRoleName.'</span> role needs to be <strong>Above</strong> any roles you want to make self-serve.</div>
+				</div>';	
 			}else{
 				echo '
 				<form method="post">
-				<strong>Select which roles you\'d like to allow as self-serve:</strong><ul>';
+					
+					<strong>Select which roles you\'d like to allow as self-serve:</strong>';
 				foreach($Roles as $RoleID => $Role){
 					
 					//Let's check if this role is already part of our options.
@@ -121,14 +128,34 @@ try{
 						$Selected = true;
 					}
 					
-					echo '<li><input type="checkbox" name="role[]" value="'.$RoleID.'"'.($Selected ? ' checked="checked"' : '').'> <span class="tag" style="border-color: #'.$Role['Color'].';color: #'.$Role['Color'].'">'.$Role['Name'].'</span></li>';
+					if(false){ //Standard
+						echo '
+					<div class="form-check">
+						<input class="form-check-input" type="checkbox" id="Role-'.$RoleID.'" name="role[]" value="'.$RoleID.'"'.($Selected ? ' checked="checked"' : '').'>
+						<label class="form-check-label tag" for="Role-'.$RoleID.'" style="border-color: #'.$Role['Color'].';color: #'.$Role['Color'].'">'.$Role['Name'].'</label>
+					</div>';
+					}
+					if(false){ //Custom
+						echo '
+					<div class="custom-control custom-checkbox mr-sm-2">
+						<input type="checkbox" class="custom-control-input" id="Role-'.$RoleID.'" name="role[]" value="'.$RoleID.'"'.($Selected ? ' checked="checked"' : '').'>
+						<label class="custom-control-label tag" for="Role-'.$RoleID.'" style="border-color: #'.$Role['Color'].';color: #'.$Role['Color'].'">'.$Role['Name'].'</label>
+					</div>';
+					}
+					if(true){ //Slider
+						echo '
+					<div class="custom-control custom-switch">
+						<input type="checkbox" class="custom-control-input" id="Role-'.$RoleID.'" name="role[]" value="'.$RoleID.'"'.($Selected ? ' checked="checked"' : '').'>
+						<label class="custom-control-label tag" for="Role-'.$RoleID.'" style="border-color: #'.$Role['Color'].';color: #'.$Role['Color'].'">'.$Role['Name'].'</label>
+					</div>';
+					}
 				}
-				echo '</ul>
-				<input type="hidden" name="guild" value="'.$Guild['guild_id'].'">
-				<button type="submit">Submit</button>
+				echo '
+					<div class="mt-3"><i class="fas fa-info-circle"></i> Roles Missing? Remember that the <span style="border-color: #'.$BotRoleColor.'; color: #'.$BotRoleColor.'">'.$BotRoleName.'</span> role needs to be <strong>Above</strong> any roles you want to make self-serve.</div>
+					<input type="hidden" name="guild" value="'.$Guild['guild_id'].'">
+					<button type="submit" class="btn btn-outline-primary mt-3">Save</button>
 				</form>';
 			}
-			echo '<br>Remember that the <span class="tag" style="border-color: #'.$BotRoleColor.'; color: #'.$BotRoleColor.'">'.$BotRoleName.'</span> role needs to be <strong>Above</strong> any roles you want to make self-serve.';
 			
 			
 		}else{
@@ -138,7 +165,7 @@ try{
 	}
 
 }catch(Exception $e){
-	echo 'Caught Exception ['.$e->getLine().']: '.$e->getMessage().'<br>';
+	echo '<div class="alert alert-danger" role="alert" data-line="'.$e->getLine().'">'.$e->getMessage().'</div>';
 }
 
 
@@ -152,3 +179,6 @@ try{
 	border: 1px solid #000000;
 }
 </style>
+<?php
+require_once "includes/footer.php";
+?>
