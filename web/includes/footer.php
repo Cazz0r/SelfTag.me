@@ -31,8 +31,14 @@
 	<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
 	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
+
+	<!-- Popper.js for Tooltips: https://cdnjs.com/libraries/popper.js -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js"></script>
+
 	<script language="javascript">
 		$(document).ready(function(){
+			
+			//User page
 			$('#User-Save').click(function(){
 				var formdata = $(this).parent('form').serialize();
 				CheckQueue(formdata);
@@ -44,6 +50,8 @@
 					if($('#modal').find('.modal-title').html() != result.title) $('#modal').find('.modal-title').html(result.title);
 					if($('#modal').find('.modal-body').html() != result.body) $('#modal').find('.modal-body').html(result.body);
 					if($('#modal').find('.modal-footer').html() != result.footer) $('#modal').find('.modal-footer').html(result.footer);
+					var size = result.size || '';
+					$('#modal').find('.modal-dialog').removeClass('modal-sm modal-lg modal-xl').addClass(size);
 					
 					if(result.hasOwnProperty('closable')){
 						if(result.closeable){
@@ -56,7 +64,6 @@
 					$('#modal').modal('show');
 					
 					if(result.hasOwnProperty('repeat')){
-						
 						timeout = setTimeout(function(){
 							CheckQueue({action: "check"})
 						}, 2500);
@@ -75,7 +82,88 @@
 			$('#modal').on('hide.bs.modal', function (e) {
 				clearTimeout(timeout);
 			});
+			
+			//Guild page		
+			function GuildBindings(){
+				$(".Category-Maintenance").off().click(function(){
+					CategoryMaintenance({action: 'categories'});
+				});
+				
+				$("#insert-category-form").off().submit(function(e){
+					e.preventDefault();
+				});
+				$('#insert-category').off().click(function(){
+					var name = $('#insert-category-input').val();
+					CategoryMaintenance({action: 'insert-category', 'name': name});
+				});
+				$('.remove-category').off().click(function(){
+					var name = $(this).attr('data-name'), conf = confirm("Are you sure you wish to remove this category?");
+					if(conf){
+						CategoryMaintenance({action: 'remove-category', 'name': name});
+					}
+				});
+				$('.move-category').off().click(function(){
+					var name = $(this).attr('data-name'), direction = $(this).attr('data-dir');
+					CategoryMaintenance({action: 'move-category', 'name': name, 'direction': direction});
+				});
+				$('.save-categories').off().click(function(){
+					data = "action=save-categories&" + $("#category-form").serialize();
+					CategoryMaintenance(data);
+				});
+				
+				$(".Guild-Save").off().click(function(){
+					data = "action=save-guild&" + $("#guild-form").serialize();
+					CategoryMaintenance(data);
+				});
+				
+			}
+			function CategoryMaintenance(formdata){
+				$.post('/guild/' + $("#guild").val() + '/' + $("#secret").val(), formdata,  function(data){
+					var result = jQuery.parseJSON(data);
+					if($('#modal').find('.modal-title').html() != result.title) $('#modal').find('.modal-title').html(result.title);
+					if($('#modal').find('.modal-body').html() != result.body) $('#modal').find('.modal-body').html(result.body);
+					if($('#modal').find('.modal-footer').html() != result.footer) $('#modal').find('.modal-footer').html(result.footer);
+					var size = result.size || '';
+					$('#modal').find('.modal-dialog').removeClass('modal-sm modal-lg modal-xl').addClass(size);
+					
+					if(result.hasOwnProperty('closable')){
+						if(result.closeable){
+							$('#modal').find('.modal-header').find('.close').attr('disabled', 'disabled');
+						}else{
+							$('#modal').find('.modal-header').find('.close').removeAttr('disabled');
+						}
+					}
+					
+					$('#modal').modal('show');
+					
+					if(result.hasOwnProperty('categories')){
+						$.each(result.categories, function(k, v){
+							
+						});
+					}
+					
+					GuildBindings();
+				});
+			}
+			GuildBindings();
+			
+			
+			//Universal
+			$('[data-toggle="tooltip"]').tooltip();
+			$("#modal").on('shown.bs.modal', function(e){
+				$('[data-toggle="tooltip"]').tooltip();
+			});
+			
 		});
 	</script>
+	<style>
+	.tag {
+		padding:2px;
+		margin:2px;
+		display:inline-block;
+		font-weight: bold;
+		border: 1px solid #000000;
+	}
+	</style>
 </body>
 </html>
